@@ -53,6 +53,7 @@ class Program
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Failed to read the {pdfPath}: {ex}");
             string[] temp = pdfPath.Split('/');
             WriteToCsv(temp[temp.Length - 1], true, ErrorPath);
         }
@@ -62,17 +63,35 @@ class Program
     {
         string hgbh = words[6].Split("：")[1].Trim();
         string ckrq = words[10].Split('\n')[0].Trim();
-        string htxyh = words[29].Split('\n')[0].Trim();
+        int index = 0;     
+        for (int i = 0; i < words.Length; i++)
+        {
+            if (words[i].Equals("/0/\n合同协议号\n"))
+            {
+                index = i + 1;
+                break;
+            }
+        }
+        string htxyh = words[index].Split('\n')[0].Trim();
+        int start = 0;
         int minus = 0;
+        for(int i = 0; i < words.Length; i++)
+        {
+            if (words[i].Equals("币制"))
+            {
+                start = i + 3;
+                break;
+            }
+        }
         for (int i = 0; i < 4; i++)
         {
-            if (!ValidateGoods(words[45 + i * 12 - minus].Split('\n')[1]))
+            if (!ValidateGoods(words[start - 2 + i * 12 - minus].Split('\n')[1]))
             {
                 break;
             }
-            string spmc = words[47 + i * 12 - minus];
-            string sl = words[49 + i * 12 - minus];
-            string djzj = words[51 + i * 12 - minus];
+            string spmc = words[start + i * 12 - minus];
+            string sl = words[start + 2 + i * 12 - minus];
+            string djzj = words[start + 4 + i * 12 - minus];
             string dj;
             string zj;
             if (djzj.Contains('\n'))
@@ -83,8 +102,8 @@ class Program
                 zj = temp[2];
             } else
             {
-                dj = words[51 + i * 12 - minus];
-                zj = words[52 + i * 12 - minus];
+                dj = words[start + 4 + i * 12 - minus];
+                zj = words[start + 5 + i * 12 - minus];
             }
             string[] result = { hgbh, ckrq, htxyh, spmc, sl, dj, zj };
             WriteToCsv(string.Join(",", result));
